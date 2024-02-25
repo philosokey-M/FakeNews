@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>News</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+    <h1>News</h1>
+    <form id="search-form">
+        <input type="text" id="search-input" placeholder="뉴스키워드 입력">
+        <button type="submit">검색</button>
+    </form>
+    <ul id="news-list">
+        <!-- 여기에 뉴스 아이템이 추가됩니다. -->
+    </ul>
+
+    <script>
+        document.getElementById('search-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const query = document.getElementById('search-input').value;
+            axios.get('/search/news?query=' + encodeURIComponent(query))
+                .then(response => {
+                    const items = response.data;
+                    const newsList = document.getElementById('news-list');
+                    newsList.innerHTML = '';  // 기존 뉴스 아이템을 제거
+
+                    let urls = [];
+                    items.forEach(item => {
+                        const li = document.createElement('li');
+                        const h3 = document.createElement('h3');
+                        const p = document.createElement('p');
+                        const a = document.createElement('a');
+                        const date = document.createElement('p');
+
+                        h3.textContent = item.title;
+                        p.textContent = item.description;
+                        a.href = item.link;
+                        a.textContent = item.link //item.originallink;
+                        date.textContent = item.pubDate;
+
+                        li.appendChild(h3);
+                        li.appendChild(p);
+                        li.appendChild(a);
+                        li.appendChild(date);
+                        newsList.appendChild(li);
+
+                        // 크롤링 테스트용으로 링크를 넣음
+                        urls.push(item.link);
+                    });
+                    axios.post('/newsCrawlerAPI/newsCrawl', { urls: urls })
+                        .then(response => {
+                            console.log(response.data);
+                        })
+                        .catch(error => {
+                            console.error(error);
+                        });
+
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        });
+    </script>
+</body>
+
+</html>
